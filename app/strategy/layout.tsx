@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Target, Users, BarChart3, Megaphone, Flame, Shield, ArrowLeft } from "lucide-react";
+import { Target, Users, BarChart3, Megaphone, Flame, Shield, Crosshair, ArrowLeft } from "lucide-react";
 
 const frameworks = [
   { id: 1, label: "F1", title: "Know Your Ground", href: "/strategy/know-your-ground", icon: Target },
@@ -11,6 +11,7 @@ const frameworks = [
   { id: 4, label: "F4", title: "Art of Mobilisation", href: "/strategy/mobilisation", icon: Megaphone },
   { id: 5, label: "F5", title: "Managing Perceptions", href: "/strategy/perceptions", icon: Flame },
   { id: 6, label: "F6", title: "Art of Defence", href: "/strategy/defence", icon: Shield },
+  { id: 7, label: "SIM", title: "Adversarial Simulation", href: "/strategy/simulation", icon: Crosshair },
 ];
 
 export default function StrategyLayout({ children }: { children: React.ReactNode }) {

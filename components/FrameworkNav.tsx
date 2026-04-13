@@ -10,6 +10,7 @@ const frameworks = [
   { id: 4, title: "Art of Mobilisation", href: "/strategy/mobilisation" },
   { id: 5, title: "Managing Perceptions", href: "/strategy/perceptions" },
   { id: 6, title: "Art of Defence", href: "/strategy/defence" },
+  { id: 7, title: "Adversarial Simulation", href: "/strategy/simulation" },
 ];
 
 export default function FrameworkNav({ currentFramework }: { currentFramework: number }) {
