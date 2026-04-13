@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect, useCallback, useRef, Suspense } from "react";
+import { useSearchParams } from "next/navigation";
 import { motion } from "framer-motion";
 import {
   Flame, Eye, MessageSquare, Radio, Newspaper, Users,
@@ -164,7 +165,9 @@ function getPhase(daysRemaining: number): "SEED" | "BUILD" | "MANAGE" {
 }
 
 // ─── Main Page ───
-export default function PerceptionsPage() {
+function PerceptionsPageContent() {
+  const searchParams = useSearchParams();
+  const electionType = searchParams.get("election_type") || undefined;
   const [data, setData] = useState<PerceptionData>(defaultData);
   const [aiAssessment, setAiAssessment] = useState("");
   const [aiLoading, setAiLoading] = useState(false);
@@ -713,7 +716,15 @@ export default function PerceptionsPage() {
         </motion.div>
       </div>
 
-      <FrameworkNav currentFramework={5} />
+      <FrameworkNav currentFramework={5} electionType={electionType} />
     </div>
+  );
+}
+
+export default function PerceptionsPage() {
+  return (
+    <Suspense>
+      <PerceptionsPageContent />
+    </Suspense>
   );
 }

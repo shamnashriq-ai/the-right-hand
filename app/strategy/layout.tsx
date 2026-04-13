@@ -1,7 +1,8 @@
 "use client";
 
+import { Suspense } from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useSearchParams } from "next/navigation";
 import { Target, Users, BarChart3, Megaphone, Flame, Shield, Crosshair, ArrowLeft } from "lucide-react";
 
 const frameworks = [
@@ -14,10 +15,20 @@ const frameworks = [
   { id: 7, label: "SIM", title: "Adversarial Simulation", href: "/strategy/simulation", icon: Crosshair },
 ];
 
-export default function StrategyLayout({ children }: { children: React.ReactNode }) {
+function StrategyLayoutInner({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const electionType = searchParams.get("election_type");
+
+  // Check if we're on the election-type page — hide framework bar
+  const isElectionTypePage = pathname === "/strategy/election-type";
 
   const currentIdx = frameworks.findIndex((fw) => pathname.startsWith(fw.href));
+
+  function appendET(href: string) {
+    if (!electionType) return href;
+    return `${href}?election_type=${electionType}`;
+  }
 
   return (
     <div className="min-h-screen bg-[var(--bg-base)]">
@@ -28,48 +39,65 @@ export default function StrategyLayout({ children }: { children: React.ReactNode
             <ArrowLeft size={16} />
             <span className="text-sm">Back</span>
           </Link>
-          <h1 className="text-sm font-medium">
-            The <span className="text-[var(--gold)]">Right Hand</span>
-          </h1>
+          <div className="flex items-center gap-3">
+            <h1 className="text-sm font-medium">
+              The <span className="text-[var(--gold)]">Right Hand</span>
+            </h1>
+            {electionType === "internal" && (
+              <span className="text-[9px] font-bold tracking-wider text-[var(--gold)] bg-[rgba(212,175,55,0.1)] border border-[var(--gold-border)] px-2 py-0.5 rounded-full">
+                INTERNAL
+              </span>
+            )}
+          </div>
           <div className="w-16" />
         </div>
 
-        {/* Framework progress indicator */}
-        <div className="max-w-[1440px] mx-auto px-6 pb-4">
-          <div className="flex items-center gap-1">
-            {frameworks.map((fw, idx) => {
-              const isCurrent = idx === currentIdx;
-              const isPast = idx < currentIdx;
-              const Icon = fw.icon;
+        {/* Framework progress indicator — hidden on election-type page */}
+        {!isElectionTypePage && (
+          <div className="max-w-[1440px] mx-auto px-6 pb-4">
+            <div className="flex items-center gap-1">
+              {frameworks.map((fw, idx) => {
+                const isCurrent = idx === currentIdx;
+                const isPast = idx < currentIdx;
+                const Icon = fw.icon;
 
-              return (
-                <div key={fw.id} className="flex items-center flex-1">
-                  <Link
-                    href={fw.href}
-                    className={`
-                      flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-medium transition-all
-                      ${isCurrent
-                        ? "bg-[var(--gold-dim)] text-[var(--gold)] border border-[var(--gold-border)]"
-                        : isPast
-                          ? "text-[var(--gold)] opacity-60 hover:opacity-100"
-                          : "text-[var(--text-muted)] hover:text-[var(--text-secondary)]"
-                      }
-                    `}
-                  >
-                    <Icon size={14} />
-                    <span className="hidden md:inline">{fw.label}</span>
-                  </Link>
-                  {idx < frameworks.length - 1 && (
-                    <div className={`flex-1 h-px mx-1 ${isPast ? "bg-[var(--gold)]" : "bg-[rgba(255,255,255,0.06)]"}`} />
-                  )}
-                </div>
-              );
-            })}
+                return (
+                  <div key={fw.id} className="flex items-center flex-1">
+                    <Link
+                      href={appendET(fw.href)}
+                      className={`
+                        flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-medium transition-all
+                        ${isCurrent
+                          ? "bg-[var(--gold-dim)] text-[var(--gold)] border border-[var(--gold-border)]"
+                          : isPast
+                            ? "text-[var(--gold)] opacity-60 hover:opacity-100"
+                            : "text-[var(--text-muted)] hover:text-[var(--text-secondary)]"
+                        }
+                      `}
+                    >
+                      <Icon size={14} />
+                      <span className="hidden md:inline">{fw.label}</span>
+                    </Link>
+                    {idx < frameworks.length - 1 && (
+                      <div className={`flex-1 h-px mx-1 ${isPast ? "bg-[var(--gold)]" : "bg-[rgba(255,255,255,0.06)]"}`} />
+                    )}
+                  </div>
+                );
+              })}
+            </div>
           </div>
-        </div>
+        )}
       </header>
 
       {children}
     </div>
+  );
+}
+
+export default function StrategyLayout({ children }: { children: React.ReactNode }) {
+  return (
+    <Suspense>
+      <StrategyLayoutInner>{children}</StrategyLayoutInner>
+    </Suspense>
   );
 }

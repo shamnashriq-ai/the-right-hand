@@ -35,7 +35,7 @@ export default function Home() {
         </p>
 
         <Link
-          href="/strategy/know-your-ground"
+          href="/strategy/election-type"
           className="group inline-flex items-center gap-3 px-8 py-4 bg-[var(--gold)] text-black font-bold text-sm uppercase tracking-widest rounded-full gold-glow hover:brightness-110 hover:scale-[1.02] transition-all duration-300"
         >
           Build Your Strategy

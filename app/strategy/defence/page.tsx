@@ -1,9 +1,13 @@
 "use client";
 
+import { Suspense } from "react";
+import { useSearchParams } from "next/navigation";
 import { Shield, Search, AlertTriangle, Zap } from "lucide-react";
 import FrameworkNav from "@/components/FrameworkNav";
 
-export default function ArtOfDefence() {
+function ArtOfDefenceContent() {
+  const searchParams = useSearchParams();
+  const electionType = searchParams.get("election_type") || undefined;
   return (
     <div className="min-h-screen bg-[var(--bg-base)]">
       <div className="max-w-[1440px] mx-auto px-6 py-12">
@@ -42,8 +46,16 @@ export default function ArtOfDefence() {
           </div>
         </div>
 
-        <FrameworkNav currentFramework={6} />
+        <FrameworkNav currentFramework={6} electionType={electionType} />
       </div>
     </div>
+  );
+}
+
+export default function ArtOfDefence() {
+  return (
+    <Suspense>
+      <ArtOfDefenceContent />
+    </Suspense>
   );
 }

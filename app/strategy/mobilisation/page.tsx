@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect, useCallback, useRef, Suspense } from "react";
+import { useSearchParams } from "next/navigation";
 import { motion } from "framer-motion";
 import {
   Users, MapPin, Calendar, Phone, Megaphone, TrendingUp,
@@ -165,7 +166,9 @@ function MetricCard({
 }
 
 // ─── Main Page ───
-export default function MobilisationPage() {
+function MobilisationPageContent() {
+  const searchParams = useSearchParams();
+  const electionType = searchParams.get("election_type") || undefined;
   const [data, setData] = useState<MobilisationData>(defaultData);
   const [aiAssessment, setAiAssessment] = useState("");
   const [aiLoading, setAiLoading] = useState(false);
@@ -561,7 +564,15 @@ export default function MobilisationPage() {
         </motion.div>
       </div>
 
-      <FrameworkNav currentFramework={4} />
+      <FrameworkNav currentFramework={4} electionType={electionType} />
     </div>
+  );
+}
+
+export default function MobilisationPage() {
+  return (
+    <Suspense>
+      <MobilisationPageContent />
+    </Suspense>
   );
 }

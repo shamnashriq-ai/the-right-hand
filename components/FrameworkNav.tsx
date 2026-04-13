@@ -13,7 +13,18 @@ const frameworks = [
   { id: 7, title: "Adversarial Simulation", href: "/strategy/simulation" },
 ];
 
-export default function FrameworkNav({ currentFramework }: { currentFramework: number }) {
+function appendElectionType(href: string, electionType?: string) {
+  if (!electionType) return href;
+  return `${href}?election_type=${electionType}`;
+}
+
+export default function FrameworkNav({
+  currentFramework,
+  electionType,
+}: {
+  currentFramework: number;
+  electionType?: string;
+}) {
   const currentIdx = frameworks.findIndex((fw) => fw.id === currentFramework);
   const prev = currentIdx > 0 ? frameworks[currentIdx - 1] : null;
   const next = currentIdx < frameworks.length - 1 ? frameworks[currentIdx + 1] : null;
@@ -23,7 +34,7 @@ export default function FrameworkNav({ currentFramework }: { currentFramework: n
       <div className="max-w-[1440px] mx-auto px-6 flex items-center justify-between">
         {prev ? (
           <Link
-            href={prev.href}
+            href={appendElectionType(prev.href, electionType)}
             className="flex items-center gap-3 px-5 py-3 rounded-xl border border-[rgba(255,255,255,0.08)] bg-[var(--bg-surface)] hover:border-[var(--gold-border)] transition-all group"
           >
             <ArrowLeft size={16} className="text-[var(--text-muted)] group-hover:text-[var(--gold)] transition-colors" />
@@ -35,12 +46,23 @@ export default function FrameworkNav({ currentFramework }: { currentFramework: n
             </div>
           </Link>
         ) : (
-          <div />
+          <Link
+            href="/strategy/election-type"
+            className="flex items-center gap-3 px-5 py-3 rounded-xl border border-[rgba(255,255,255,0.08)] bg-[var(--bg-surface)] hover:border-[var(--gold-border)] transition-all group"
+          >
+            <ArrowLeft size={16} className="text-[var(--text-muted)] group-hover:text-[var(--gold)] transition-colors" />
+            <div className="text-left">
+              <span className="text-xs text-[var(--text-muted)] block">Back</span>
+              <span className="text-sm font-medium text-[var(--text-secondary)] group-hover:text-white transition-colors">
+                Change Election Type
+              </span>
+            </div>
+          </Link>
         )}
 
         {next ? (
           <Link
-            href={next.href}
+            href={appendElectionType(next.href, electionType)}
             className="flex items-center gap-3 px-5 py-3 rounded-xl border border-[var(--gold-border)] bg-[var(--gold-dim)] hover:bg-[rgba(245,166,35,0.25)] transition-all group"
           >
             <div className="text-right">

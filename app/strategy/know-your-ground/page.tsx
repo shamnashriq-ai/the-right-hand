@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useRef, useCallback, Suspense } from "react";
+import { useSearchParams } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Target,
@@ -18,6 +19,7 @@ import {
   Check,
 } from "lucide-react";
 import FrameworkNav from "@/components/FrameworkNav";
+import InternalGroundForm from "@/components/strategy/InternalGroundForm";
 
 interface GroundData {
   seatName: string;
@@ -142,7 +144,11 @@ function parseBriefing(text: string) {
   return sections;
 }
 
-export default function KnowYourGround() {
+function KnowYourGroundContent() {
+  const searchParams = useSearchParams();
+  const electionType = searchParams.get("election_type") || "constituency";
+  const isInternal = electionType === "internal";
+
   const [data, setData] = useState<GroundData>(defaultData);
   const [aiAssessment, setAiAssessment] = useState("");
   const [aiLoading, setAiLoading] = useState(false);
@@ -291,6 +297,36 @@ export default function KnowYourGround() {
   };
 
   const briefingSections = intelBriefing ? parseBriefing(intelBriefing) : null;
+
+  if (isInternal) {
+    return (
+      <div className="max-w-[1440px] mx-auto px-6 py-8">
+        <motion.div
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4 }}
+          className="mb-8"
+        >
+          <div className="flex items-center gap-3 mb-2">
+            <div className="p-2 rounded-lg bg-[var(--gold-dim)]">
+              <Target size={20} className="text-[var(--gold)]" />
+            </div>
+            <div>
+              <h2 className="text-2xl font-bold">Know Your Ground</h2>
+              <p className="text-sm text-[var(--text-secondary)]">
+                Framework 1 — Map the internal battlefield before you fight
+              </p>
+            </div>
+          </div>
+          <div className="mt-2 inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[rgba(212,175,55,0.1)] border border-[var(--gold-border)]">
+            <span className="text-[10px] font-bold text-[var(--gold)] tracking-wider">PARTY INTERNAL MODE</span>
+          </div>
+        </motion.div>
+        <InternalGroundForm />
+        <FrameworkNav currentFramework={1} electionType={electionType} />
+      </div>
+    );
+  }
 
   return (
     <div className="max-w-[1440px] mx-auto px-6 py-8">
@@ -876,7 +912,15 @@ export default function KnowYourGround() {
         </motion.div>
       </div>
 
-      <FrameworkNav currentFramework={1} />
+      <FrameworkNav currentFramework={1} electionType={electionType} />
     </div>
+  );
+}
+
+export default function KnowYourGround() {
+  return (
+    <Suspense>
+      <KnowYourGroundContent />
+    </Suspense>
   );
 }

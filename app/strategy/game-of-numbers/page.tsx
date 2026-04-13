@@ -1,9 +1,13 @@
 "use client";
 
+import { Suspense } from "react";
+import { useSearchParams } from "next/navigation";
 import { BarChart3, Calculator, TrendingUp, Target } from "lucide-react";
 import FrameworkNav from "@/components/FrameworkNav";
 
-export default function GameOfNumbers() {
+function GameOfNumbersContent() {
+  const searchParams = useSearchParams();
+  const electionType = searchParams.get("election_type") || undefined;
   return (
     <div className="min-h-screen bg-[var(--bg-base)]">
       <div className="max-w-[1440px] mx-auto px-6 py-12">
@@ -42,8 +46,16 @@ export default function GameOfNumbers() {
           </div>
         </div>
 
-        <FrameworkNav currentFramework={3} />
+        <FrameworkNav currentFramework={3} electionType={electionType} />
       </div>
     </div>
+  );
+}
+
+export default function GameOfNumbers() {
+  return (
+    <Suspense>
+      <GameOfNumbersContent />
+    </Suspense>
   );
 }
