@@ -2,34 +2,7 @@ import Anthropic from "@anthropic-ai/sdk";
 
 const client = new Anthropic();
 
-export async function POST(request: Request) {
-  try {
-    const {
-      constituency,
-      seatType,
-      classification,
-      status,
-      daysRemaining,
-      topIssue,
-    } = await request.json();
-
-    if (!constituency || constituency.trim().length < 2) {
-      return Response.json(
-        { briefing: null, error: "Constituency name is required." },
-        { status: 400 }
-      );
-    }
-
-    const response = await client.messages.create({
-      model: "claude-sonnet-4-6",
-      max_tokens: 1200,
-      tools: [
-        {
-          type: "web_search_20250305",
-          name: "web_search",
-        },
-      ],
-      system: `You are The Right Hand — an elite AI political intelligence analyst. Your job is to brief a political candidate on the ground reality of their constituency using the latest available public intelligence.
+const SYSTEM_PROMPT = `You are The Right Hand — an elite AI political intelligence analyst. Your job is to brief a political candidate on the ground reality of their constituency using the latest available public intelligence.
 
 You have access to web search. Use it to find:
 1. Recent news and issues specific to this constituency or its surrounding area (last 6-12 months)
@@ -57,29 +30,136 @@ Rules:
 - If search returns limited results for this specific constituency, widen to the parliamentary area or state, and say so
 - Never pad with generic political commentary
 - Write in second person: "Your constituency..."
-- Keep total response under 400 words`,
-      messages: [
-        {
-          role: "user",
-          content: `Constituency: ${constituency}
+- Keep total response under 400 words`;
+
+const FALLBACK_SYSTEM_PROMPT = `You are The Right Hand — an elite AI political intelligence analyst. You do NOT have access to live web search in this mode. Instead, use your training knowledge to brief a political candidate on the ground reality of their constituency.
+
+Produce a structured Ground Intelligence Briefing with exactly these four sections:
+
+GROUND REALITY
+One paragraph. What is the factual structural situation of this constituency — demographic, economic, political. What kind of seat is this based on what you know.
+
+LIVE ISSUES (3 items)
+Three issues likely active or historically significant in this constituency or its surrounding area. Each issue: one bold headline + one sentence of context. Be honest about what is from training knowledge versus confirmed recent events. If you have no specific information, surface the most relevant regional or state-level issues and note the limitation.
+
+UNKNOWN RISKS (2 items)
+Two things the candidate may not have considered — structural risks, demographic shifts, or political dynamics that typically affect seats like this. Be specific where possible.
+
+STRATEGIC IMPLICATION
+One paragraph. Given this intelligence, what is the single most important thing this candidate must understand about their battlefield before they build their strategy.
+
+Rules:
+- Be honest that this briefing is based on training knowledge, not live search
+- Add a note at the top: "[Based on training knowledge — live web search unavailable. Verify details independently.]"
+- Be specific where you can: name places, known issues, historical patterns
+- If you know little about a specific constituency, widen to the parliamentary area or state, and say so
+- Never pad with generic political commentary
+- Write in second person: "Your constituency..."
+- Keep total response under 400 words`;
+
+function buildUserMessage(
+  constituency: string,
+  seatType: string,
+  classification: string,
+  status: string,
+  daysRemaining: number,
+  topIssue: string
+): string {
+  return `Constituency: ${constituency}
 Seat type: ${seatType || "Not specified"}
 Classification: ${classification || "Not specified"}
 Candidate status: ${status || "Not specified"}
 Days to polling: ${daysRemaining || "Not specified"}
 Top issue candidate flagged: ${topIssue || "None flagged yet"}
 
-Run web searches and produce the Ground Intelligence Briefing for this constituency now.`,
-        },
-      ],
-    });
+Run web searches and produce the Ground Intelligence Briefing for this constituency now.`;
+}
 
-    // Extract the final text response (after tool use blocks)
-    const textContent = response.content
-      .filter((block: { type: string }) => block.type === "text")
-      .map((block: { type: string; text?: string }) =>
-        block.type === "text" ? (block as { type: "text"; text: string }).text : ""
-      )
-      .join("");
+function extractText(response: Anthropic.Message): string {
+  return response.content
+    .filter((block): block is Anthropic.TextBlock => block.type === "text")
+    .map((block) => block.text)
+    .join("");
+}
+
+export async function POST(request: Request) {
+  try {
+    const {
+      constituency,
+      seatType,
+      classification,
+      status,
+      daysRemaining,
+      topIssue,
+    } = await request.json();
+
+    if (!constituency || constituency.trim().length < 2) {
+      return Response.json(
+        { briefing: null, error: "Constituency name is required." },
+        { status: 400 }
+      );
+    }
+
+    const userMessage = buildUserMessage(
+      constituency,
+      seatType,
+      classification,
+      status,
+      daysRemaining,
+      topIssue
+    );
+
+    let textContent = "";
+
+    // Attempt 1: Web search enabled
+    try {
+      const response = await client.messages.create({
+        model: "claude-sonnet-4-6",
+        max_tokens: 1200,
+        tools: [
+          {
+            type: "web_search_20250305",
+            name: "web_search",
+          },
+        ],
+        system: SYSTEM_PROMPT,
+        messages: [{ role: "user", content: userMessage }],
+      });
+
+      textContent = extractText(response);
+    } catch (webSearchError: unknown) {
+      const errMsg =
+        webSearchError instanceof Error ? webSearchError.message : "";
+      console.warn(
+        "Web search unavailable, falling back to training knowledge:",
+        errMsg
+      );
+
+      // Attempt 2: Fallback — regular completion without web search
+      try {
+        const fallbackResponse = await client.messages.create({
+          model: "claude-sonnet-4-6",
+          max_tokens: 1200,
+          system: FALLBACK_SYSTEM_PROMPT,
+          messages: [{ role: "user", content: userMessage }],
+        });
+
+        textContent = extractText(fallbackResponse);
+      } catch (fallbackError: unknown) {
+        const fallbackMsg =
+          fallbackError instanceof Error
+            ? fallbackError.message
+            : "Unknown error";
+        console.error("Fallback also failed:", fallbackMsg);
+        return Response.json(
+          {
+            briefing: null,
+            error: `Intelligence briefing failed: ${fallbackMsg}`,
+          },
+          { status: 500 }
+        );
+      }
+    }
 
     if (!textContent) {
       return Response.json({
