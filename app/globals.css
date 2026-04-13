@@ -29,6 +29,27 @@ body {
   font-family: Arial, Helvetica, sans-serif;
 }
 
+/* Gold gradient text */
+.gold-gradient-text {
+  background: linear-gradient(135deg, #F5A623, #E8961C, #F5C563);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* Gold glow effect for buttons */
+.gold-glow {
+  box-shadow: 0 0 20px rgba(245, 166, 35, 0.3), 0 0 40px rgba(245, 166, 35, 0.1);
+}
+
+/* Subtle grid background */
+.subtle-grid {
+  background-image:
+    linear-gradient(rgba(255, 255, 255, 0.02) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
+  background-size: 60px 60px;
+}
+
 /* Custom scrollbar */
 ::-webkit-scrollbar {
   width: 6px;
