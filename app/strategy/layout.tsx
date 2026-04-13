@@ -9,7 +9,7 @@ const frameworks = [
   { id: 2, label: "F2", title: "Know Your Voters", href: "/strategy/know-your-voters", icon: Users },
   { id: 3, label: "F3", title: "Game of Numbers", href: "/strategy/game-of-numbers", icon: BarChart3 },
   { id: 4, label: "F4", title: "Art of Mobilisation", href: "/strategy/mobilisation", icon: Megaphone },
-  { id: 5, label: "F5", title: "Art of Messaging", href: "/strategy/messaging", icon: Flame },
+  { id: 5, label: "F5", title: "Managing Perceptions", href: "/strategy/perceptions", icon: Flame },
   { id: 6, label: "F6", title: "Art of Defence", href: "/strategy/defence", icon: Shield },
 ];
 

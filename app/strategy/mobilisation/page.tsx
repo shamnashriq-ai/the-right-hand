@@ -7,6 +7,7 @@ import {
   AlertTriangle, Target, Zap, Award, Star, Brain, ArrowRight,
   Activity, BarChart3
 } from "lucide-react";
+import FrameworkNav from "@/components/FrameworkNav";
 
 // ─── Types ───
 interface MobilisationData {
@@ -559,6 +560,8 @@ export default function MobilisationPage() {
           </div>
         </motion.div>
       </div>
+
+      <FrameworkNav currentFramework={4} />
     </div>
   );
 }

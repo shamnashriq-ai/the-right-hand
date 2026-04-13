@@ -32,15 +32,15 @@ const frameworks = [
     description: "Ground machinery, volunteer tracking, coverage intelligence",
     icon: Megaphone,
     href: "/strategy/mobilisation",
-    status: "active" as const,
+    status: "available" as const,
   },
   {
     id: 5,
-    title: "Art of Messaging",
-    description: "Narrative strategy, issue framing, and media deployment",
+    title: "Managing Perceptions",
+    description: "Narrative strategy, perception control, and in-situational response",
     icon: Flame,
-    href: "/strategy/messaging",
-    status: "coming-soon" as const,
+    href: "/strategy/perceptions",
+    status: "available" as const,
   },
   {
     id: 6,
@@ -67,7 +67,6 @@ export default function Home() {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-5xl w-full">
         {frameworks.map((fw) => {
           const Icon = fw.icon;
-          const isActive = fw.status === "active";
           const isComingSoon = fw.status === "coming-soon";
 
           return (
@@ -76,27 +75,20 @@ export default function Home() {
               href={isComingSoon ? "#" : fw.href}
               className={`
                 relative block p-6 rounded-xl border transition-all duration-300
-                ${isActive
-                  ? "bg-[var(--bg-surface)] border-[var(--gold-border)] shadow-[0_0_40px_rgba(245,166,35,0.08)]"
-                  : isComingSoon
-                    ? "bg-[var(--bg-surface)] border-[rgba(255,255,255,0.06)] opacity-50 cursor-not-allowed"
-                    : "bg-[var(--bg-surface)] border-[rgba(255,255,255,0.06)] hover:border-[var(--gold-border)]"
+                ${isComingSoon
+                  ? "bg-[var(--bg-surface)] border-[rgba(255,255,255,0.06)] opacity-50 cursor-not-allowed"
+                  : "bg-[var(--bg-surface)] border-[rgba(255,255,255,0.06)] hover:border-[var(--gold-border)]"
                 }
               `}
             >
-              {isActive && (
-                <span className="absolute top-3 right-3 text-xs font-medium text-[var(--gold)] bg-[var(--gold-dim)] px-2 py-0.5 rounded-full">
-                  CURRENT
-                </span>
-              )}
               {isComingSoon && (
                 <span className="absolute top-3 right-3 text-xs text-[var(--text-muted)]">
                   COMING SOON
                 </span>
               )}
               <div className="flex items-center gap-3 mb-3">
-                <div className={`p-2 rounded-lg ${isActive ? "bg-[var(--gold-dim)]" : "bg-[var(--bg-elevated)]"}`}>
-                  <Icon size={20} className={isActive ? "text-[var(--gold)]" : "text-[var(--text-secondary)]"} />
+                <div className="p-2 rounded-lg bg-[var(--bg-elevated)]">
+                  <Icon size={20} className="text-[var(--text-secondary)]" />
                 </div>
                 <span className="text-xs text-[var(--text-muted)] font-mono">F{fw.id}</span>
               </div>

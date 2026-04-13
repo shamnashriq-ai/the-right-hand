@@ -7,6 +7,7 @@ import {
   Shield, AlertTriangle, Brain, Copy, Check, Zap,
   Target, Megaphone, BarChart3
 } from "lucide-react";
+import FrameworkNav from "@/components/FrameworkNav";
 
 // ─── Types ───
 interface PerceptionData {
@@ -711,6 +712,8 @@ export default function PerceptionsPage() {
           </div>
         </motion.div>
       </div>
+
+      <FrameworkNav currentFramework={5} />
     </div>
   );
 }
