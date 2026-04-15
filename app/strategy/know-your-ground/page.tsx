@@ -20,6 +20,8 @@ import {
 } from "lucide-react";
 import FrameworkNav from "@/components/FrameworkNav";
 import InternalGroundForm from "@/components/strategy/InternalGroundForm";
+import PrecedentPulse from "@/components/intelligence/PrecedentPulse";
+import PrecedentModal from "@/components/intelligence/PrecedentModal";
 
 interface GroundData {
   seatName: string;
@@ -152,11 +154,16 @@ function KnowYourGroundContent() {
   const [data, setData] = useState<GroundData>(defaultData);
   const [aiAssessment, setAiAssessment] = useState("");
   const [aiLoading, setAiLoading] = useState(false);
+  const [groundPrecedent, setGroundPrecedent] = useState<string | null>(null);
+  const [groundEntryId, setGroundEntryId] = useState<string | null>(null);
+  const [intelPrecedent, setIntelPrecedent] = useState<string | null>(null);
+  const [intelEntryId, setIntelEntryId] = useState<string | null>(null);
   const [intelBriefing, setIntelBriefing] = useState<string | null>(null);
   const [intelLoading, setIntelLoading] = useState(false);
   const [intelError, setIntelError] = useState<string | null>(null);
   const [intelSearched, setIntelSearched] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [modalEntryId, setModalEntryId] = useState<string | null>(null);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const intelDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const lastSearchedSeat = useRef<string>("");
@@ -227,6 +234,8 @@ function KnowYourGroundContent() {
           setAiAssessment(
             result.assessment || "Unable to generate assessment."
           );
+          setGroundPrecedent(result.precedent || null);
+          setGroundEntryId(result.precedent_entry_id || null);
         } catch {
           setAiAssessment(
             "Connection error. Check your network and try again."
@@ -265,6 +274,8 @@ function KnowYourGroundContent() {
           const result = await res.json();
           if (result.briefing) {
             setIntelBriefing(result.briefing);
+            setIntelPrecedent(result.precedent || null);
+            setIntelEntryId(result.precedent_entry_id || null);
           } else {
             setIntelError(
               result.error || "No intelligence available for this area."
@@ -703,6 +714,9 @@ function KnowYourGroundContent() {
                       )}
                     </div>
                   )}
+                  {intelBriefing && !intelLoading && (
+                    <PrecedentPulse precedent={intelPrecedent} entryId={intelEntryId} onOpenModal={setModalEntryId} />
+                  )}
                 </div>
 
                 {/* Inline animation style */}
@@ -897,9 +911,12 @@ function KnowYourGroundContent() {
                   </span>
                 </div>
               ) : aiAssessment ? (
-                <p className="text-sm text-[var(--text-secondary)] leading-relaxed">
-                  {aiAssessment}
-                </p>
+                <>
+                  <p className="text-sm text-[var(--text-secondary)] leading-relaxed">
+                    {aiAssessment}
+                  </p>
+                  <PrecedentPulse precedent={groundPrecedent} entryId={groundEntryId} onOpenModal={setModalEntryId} />
+                </>
               ) : (
                 <p className="text-sm text-[var(--text-muted)]">
                   Fill in your seat type, classification, candidate status,
@@ -913,6 +930,7 @@ function KnowYourGroundContent() {
       </div>
 
       <FrameworkNav currentFramework={1} electionType={electionType} />
+      <PrecedentModal entryId={modalEntryId} open={!!modalEntryId} onClose={() => setModalEntryId(null)} />
     </div>
   );
 }

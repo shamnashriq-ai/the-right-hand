@@ -1,4 +1,6 @@
 import Anthropic from "@anthropic-ai/sdk";
+import { parsePrecedent } from "@/lib/intelligence/parsePrecedent";
+import { buildPrecedentSystemPrompt } from "@/lib/intelligence/precedentPrompt";
 
 const client = new Anthropic();
 
@@ -91,6 +93,7 @@ export async function POST(request: Request) {
       status,
       daysRemaining,
       topIssue,
+      election_type,
     } = await request.json();
 
     if (!constituency || constituency.trim().length < 2) {
@@ -111,6 +114,12 @@ export async function POST(request: Request) {
 
     let textContent = "";
 
+    const systemPrompt = buildPrecedentSystemPrompt(SYSTEM_PROMPT, election_type);
+    const fallbackSystemPrompt = buildPrecedentSystemPrompt(
+      FALLBACK_SYSTEM_PROMPT,
+      election_type
+    );
+
     // Attempt 1: Web search enabled
     try {
       const response = await client.messages.create({
@@ -122,7 +131,7 @@ export async function POST(request: Request) {
             name: "web_search",
           },
         ],
-        system: SYSTEM_PROMPT,
+        system: systemPrompt,
         messages: [{ role: "user", content: userMessage }],
       });
 
@@ -140,7 +149,7 @@ export async function POST(request: Request) {
         const fallbackResponse = await client.messages.create({
           model: "claude-sonnet-4-6",
           max_tokens: 1200,
-          system: FALLBACK_SYSTEM_PROMPT,
+          system: fallbackSystemPrompt,
           messages: [{ role: "user", content: userMessage }],
         });
 
@@ -164,17 +173,30 @@ export async function POST(request: Request) {
     if (!textContent) {
       return Response.json({
         briefing: null,
+        precedent: null,
+        precedent_entry_id: null,
         error: "No briefing generated. The AI may need more search context.",
       });
     }
 
-    return Response.json({ briefing: textContent });
+    const { assessment, precedent, entry_id } = parsePrecedent(textContent);
+
+    return Response.json({
+      briefing: assessment,
+      precedent,
+      precedent_entry_id: entry_id,
+    });
   } catch (error: unknown) {
     const message =
       error instanceof Error ? error.message : "Unknown error occurred";
     console.error("Ground intelligence error:", message);
     return Response.json(
-      { briefing: null, error: `Intelligence briefing failed: ${message}` },
+      {
+        briefing: null,
+        precedent: null,
+        precedent_entry_id: null,
+        error: `Intelligence briefing failed: ${message}`,
+      },
       { status: 500 }
     );
   }

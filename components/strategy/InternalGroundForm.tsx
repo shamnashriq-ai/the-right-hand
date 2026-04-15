@@ -17,6 +17,8 @@ import {
   Check,
   Network,
 } from "lucide-react";
+import PrecedentPulse from "@/components/intelligence/PrecedentPulse";
+import PrecedentModal from "@/components/intelligence/PrecedentModal";
 
 export interface InternalGroundData {
   partyName: string;
@@ -179,6 +181,11 @@ function parseBriefing(text: string) {
 export default function InternalGroundForm() {
   const [data, setData] = useState<InternalGroundData>(defaultData);
   const [aiAssessment, setAiAssessment] = useState("");
+  const [intPrecedent, setIntPrecedent] = useState<string | null>(null);
+  const [intEntryId, setIntEntryId] = useState<string | null>(null);
+  const [intIntelPrecedent, setIntIntelPrecedent] = useState<string | null>(null);
+  const [intIntelEntryId, setIntIntelEntryId] = useState<string | null>(null);
+  const [modalEntryId, setModalEntryId] = useState<string | null>(null);
   const [aiLoading, setAiLoading] = useState(false);
   const [intelBriefing, setIntelBriefing] = useState<string | null>(null);
   const [intelLoading, setIntelLoading] = useState(false);
@@ -262,6 +269,8 @@ export default function InternalGroundForm() {
           setAiAssessment(
             result.assessment || "Unable to generate assessment."
           );
+          setIntPrecedent(result.precedent || null);
+          setIntEntryId(result.precedent_entry_id || null);
         } catch {
           setAiAssessment(
             "Connection error. Check your network and try again."
@@ -303,6 +312,8 @@ export default function InternalGroundForm() {
           const result = await res.json();
           if (result.briefing) {
             setIntelBriefing(result.briefing);
+            setIntIntelPrecedent(result.precedent || null);
+            setIntIntelEntryId(result.precedent_entry_id || null);
           } else {
             setIntelError(
               result.error || "No intelligence available for this contest."
@@ -766,6 +777,9 @@ export default function InternalGroundForm() {
                     )}
                   </div>
                 )}
+                {intelBriefing && !intelLoading && (
+                  <PrecedentPulse precedent={intIntelPrecedent} entryId={intIntelEntryId} onOpenModal={setModalEntryId} />
+                )}
               </div>
               <style jsx>{`
                 @keyframes intelPulse {
@@ -944,9 +958,12 @@ export default function InternalGroundForm() {
                 </span>
               </div>
             ) : aiAssessment ? (
-              <p className="text-sm text-[var(--text-secondary)] leading-relaxed">
-                {aiAssessment}
-              </p>
+              <>
+                <p className="text-sm text-[var(--text-secondary)] leading-relaxed">
+                  {aiAssessment}
+                </p>
+                <PrecedentPulse precedent={intPrecedent} entryId={intEntryId} onOpenModal={setModalEntryId} />
+              </>
             ) : (
               <p className="text-sm text-[var(--text-muted)]">
                 Fill in your party name, position, total delegates, status,
@@ -956,6 +973,7 @@ export default function InternalGroundForm() {
           </div>
         </div>
       </motion.div>
+      <PrecedentModal entryId={modalEntryId} open={!!modalEntryId} onClose={() => setModalEntryId(null)} />
     </div>
   );
 }

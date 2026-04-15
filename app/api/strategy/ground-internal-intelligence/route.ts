@@ -1,6 +1,11 @@
 import Anthropic from "@anthropic-ai/sdk";
+import { parsePrecedent } from "@/lib/intelligence/parsePrecedent";
+import { buildPrecedentSystemPrompt } from "@/lib/intelligence/precedentPrompt";
 
 const client = new Anthropic();
+
+// Internal-contest routes always treat election_type as "internal" for precedent selection.
+const INTERNAL_ELECTION_TYPE = "internal";
 
 const SYSTEM_PROMPT = `You are The Right Hand — an elite AI political intelligence analyst specialising in party internal elections. Your job is to brief a candidate contesting a party internal position on the power dynamics, faction landscape, and internal politics of their party.
 
@@ -106,6 +111,15 @@ export async function POST(request: Request) {
 
     let textContent = "";
 
+    const systemPrompt = buildPrecedentSystemPrompt(
+      SYSTEM_PROMPT,
+      INTERNAL_ELECTION_TYPE
+    );
+    const fallbackSystemPrompt = buildPrecedentSystemPrompt(
+      FALLBACK_SYSTEM_PROMPT,
+      INTERNAL_ELECTION_TYPE
+    );
+
     // Attempt 1: Web search enabled
     try {
       const response = await client.messages.create({
@@ -117,7 +131,7 @@ export async function POST(request: Request) {
             name: "web_search",
           },
         ],
-        system: SYSTEM_PROMPT,
+        system: systemPrompt,
         messages: [{ role: "user", content: userMessage }],
       });
 
@@ -135,7 +149,7 @@ export async function POST(request: Request) {
         const fallbackResponse = await client.messages.create({
           model: "claude-sonnet-4-6",
           max_tokens: 1200,
-          system: FALLBACK_SYSTEM_PROMPT,
+          system: fallbackSystemPrompt,
           messages: [{ role: "user", content: userMessage }],
         });
 
@@ -159,17 +173,30 @@ export async function POST(request: Request) {
     if (!textContent) {
       return Response.json({
         briefing: null,
+        precedent: null,
+        precedent_entry_id: null,
         error: "No briefing generated. The AI may need more search context.",
       });
     }
 
-    return Response.json({ briefing: textContent });
+    const { assessment, precedent, entry_id } = parsePrecedent(textContent);
+
+    return Response.json({
+      briefing: assessment,
+      precedent,
+      precedent_entry_id: entry_id,
+    });
   } catch (error: unknown) {
     const message =
       error instanceof Error ? error.message : "Unknown error occurred";
     console.error("Internal intelligence error:", message);
     return Response.json(
-      { briefing: null, error: `Intelligence briefing failed: ${message}` },
+      {
+        briefing: null,
+        precedent: null,
+        precedent_entry_id: null,
+        error: `Intelligence briefing failed: ${message}`,
+      },
       { status: 500 }
     );
   }

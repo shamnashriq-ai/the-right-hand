@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { selectInternalPrecedent } from "@/lib/intelligence/selectPrecedent";
 
 export async function POST(req: NextRequest) {
   try {
@@ -95,10 +96,16 @@ export async function POST(req: NextRequest) {
     }
 
     const assessment = sentences.join(" ");
-    return NextResponse.json({ assessment });
+    const { precedent, precedent_entry_id } = selectInternalPrecedent({
+      numberOfContestants: numberOfContestants ? parseInt(numberOfContestants, 10) : 2,
+      incumbentStatus,
+      factionAlignment,
+      commitRate,
+    });
+    return NextResponse.json({ assessment, precedent, precedent_entry_id });
   } catch {
     return NextResponse.json(
-      { assessment: "Error generating assessment. Please try again." },
+      { assessment: "Error generating assessment. Please try again.", precedent: null, precedent_entry_id: null },
       { status: 500 }
     );
   }

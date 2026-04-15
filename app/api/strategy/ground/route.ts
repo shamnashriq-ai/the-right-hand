@@ -1,3 +1,5 @@
+import { selectGroundPrecedent } from "@/lib/intelligence/selectPrecedent";
+
 export async function POST(request: Request) {
   const data = await request.json();
 
@@ -27,7 +29,16 @@ export async function POST(request: Request) {
     totalVoters,
   });
 
-  return Response.json({ assessment });
+  const { precedent, precedent_entry_id } = selectGroundPrecedent({
+    candidateStatus,
+    opponentStrength,
+    partyBrand,
+    candidatesContesting,
+    classification,
+    daysUntilPolling,
+  });
+
+  return Response.json({ assessment, precedent, precedent_entry_id });
 }
 
 interface GroundInput {

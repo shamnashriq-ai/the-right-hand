@@ -1,3 +1,5 @@
+import { selectMobilisationPrecedent } from "@/lib/intelligence/selectPrecedent";
+
 export async function POST(request: Request) {
   const data = await request.json();
 
@@ -45,7 +47,15 @@ export async function POST(request: Request) {
     votesNeeded,
   });
 
-  return Response.json({ assessment });
+  const { precedent, precedent_entry_id } = selectMobilisationPrecedent({
+    coveragePercent: parseFloat(coveragePercent),
+    paceStatus,
+    volunteers,
+    gapPercent: parseFloat(gapPercent),
+    mobilisationChannel,
+  });
+
+  return Response.json({ assessment, precedent, precedent_entry_id });
 }
 
 interface AssessmentInput {

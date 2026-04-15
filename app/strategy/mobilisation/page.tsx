@@ -9,6 +9,8 @@ import {
   Activity, BarChart3
 } from "lucide-react";
 import FrameworkNav from "@/components/FrameworkNav";
+import PrecedentPulse from "@/components/intelligence/PrecedentPulse";
+import PrecedentModal from "@/components/intelligence/PrecedentModal";
 
 // ─── Types ───
 interface MobilisationData {
@@ -172,6 +174,9 @@ function MobilisationPageContent() {
   const [data, setData] = useState<MobilisationData>(defaultData);
   const [aiAssessment, setAiAssessment] = useState("");
   const [aiLoading, setAiLoading] = useState(false);
+  const [mobPrecedent, setMobPrecedent] = useState<string | null>(null);
+  const [mobEntryId, setMobEntryId] = useState<string | null>(null);
+  const [modalEntryId, setModalEntryId] = useState<string | null>(null);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const update = useCallback((field: keyof MobilisationData, value: number | string) => {
@@ -223,6 +228,8 @@ function MobilisationPageContent() {
           });
           const result = await res.json();
           setAiAssessment(result.assessment || "Unable to generate assessment.");
+          setMobPrecedent(result.precedent || null);
+          setMobEntryId(result.precedent_entry_id || null);
         } catch {
           setAiAssessment("Connection error. Check your network and try again.");
         } finally {
@@ -553,7 +560,11 @@ function MobilisationPageContent() {
                   <span className="text-sm text-[var(--text-secondary)]">Analysing ground intelligence...</span>
                 </div>
               ) : aiAssessment ? (
-                <p className="text-sm text-[var(--text-secondary)] leading-relaxed">{aiAssessment}</p>
+                <>
+                  <p className="text-sm text-[var(--text-secondary)] leading-relaxed">{aiAssessment}</p>
+                  <PrecedentPulse precedent={mobPrecedent} entryId={mobEntryId} onOpenModal={setModalEntryId} />
+                </>
+
               ) : (
                 <p className="text-sm text-[var(--text-muted)]">
                   Enter your volunteer count and days remaining to activate the AI ground intelligence assessment.
@@ -565,6 +576,7 @@ function MobilisationPageContent() {
       </div>
 
       <FrameworkNav currentFramework={4} electionType={electionType} />
+      <PrecedentModal entryId={modalEntryId} open={!!modalEntryId} onClose={() => setModalEntryId(null)} />
     </div>
   );
 }
